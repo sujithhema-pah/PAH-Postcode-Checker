@@ -1,15 +1,16 @@
 {
   "files": {
-    "main.css": "/PAH-Postcode-Checker/static/css/main.ce436024.css",
-    "main.js": "/PAH-Postcode-Checker/static/js/main.4be547fa.js",
+    "main.css": "/PAH-Postcode-Checker/static/css/main.32e6af27.css",
+    "main.js": "/PAH-Postcode-Checker/static/js/main.ffad460d.js",
     "static/js/453.2e329e4c.chunk.js": "/PAH-Postcode-Checker/static/js/453.2e329e4c.chunk.js",
+    "static/media/pah_logos.png": "/PAH-Postcode-Checker/static/media/pah_logos.a07acddb028765912a50.png",
     "index.html": "/PAH-Postcode-Checker/index.html",
-    "main.ce436024.css.map": "/PAH-Postcode-Checker/static/css/main.ce436024.css.map",
-    "main.4be547fa.js.map": "/PAH-Postcode-Checker/static/js/main.4be547fa.js.map",
+    "main.32e6af27.css.map": "/PAH-Postcode-Checker/static/css/main.32e6af27.css.map",
+    "main.ffad460d.js.map": "/PAH-Postcode-Checker/static/js/main.ffad460d.js.map",
     "453.2e329e4c.chunk.js.map": "/PAH-Postcode-Checker/static/js/453.2e329e4c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.ce436024.css",
-    "static/js/main.4be547fa.js"
+    "static/css/main.32e6af27.css",
+    "static/js/main.ffad460d.js"
   ]
 }
