@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/PAH-Postcode-Checker/static/css/main.ce436024.css",
+    "main.js": "/PAH-Postcode-Checker/static/js/main.3a81131d.js",
+    "static/js/453.2e329e4c.chunk.js": "/PAH-Postcode-Checker/static/js/453.2e329e4c.chunk.js",
+    "index.html": "/PAH-Postcode-Checker/index.html",
+    "main.ce436024.css.map": "/PAH-Postcode-Checker/static/css/main.ce436024.css.map",
+    "main.3a81131d.js.map": "/PAH-Postcode-Checker/static/js/main.3a81131d.js.map",
+    "453.2e329e4c.chunk.js.map": "/PAH-Postcode-Checker/static/js/453.2e329e4c.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ce436024.css",
+    "static/js/main.3a81131d.js"
+  ]
+}
