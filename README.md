@@ -22,6 +22,12 @@ A lightweight web app built for the **Princess Alice Hospice fundraising and out
 - **Map Library:** Leaflet 
 - **APIs Used:**  
   - [Postcodes.io](https://api.postcodes.io/) — UK postcode lookup and geocoding  
-  - [ONS Geoportal](https://geoportal.statistics.gov.uk/) — geographic and boundary data for Southwest London and Surrey Heartlands regions
 
 ---
+## 📊 Data Sources
+
+- [**ONS Geoportal**](https://geoportal.statistics.gov.uk/)  
+  — For boundary and geospatial datasets, specifically **Southwest London** and **Surrey Heartlands** areas.  
+
+- **Custom Princess Alice Hospice Care Areas Data**  
+  — Defines key service regions covered by **Princess Alice Hospice** across **Southwest London** and **Surrey Heartlands**.
