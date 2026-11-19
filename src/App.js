@@ -54,6 +54,7 @@ function App() {
   const [hospices, setHospices] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [submittedPostcode, setSubmittedPostcode] = useState('');
+  const [displayLimit, setDisplayLimit] = useState(100);
 
   // Map mode states
   const [searchedLocation, setSearchedLocation] = useState(null);
@@ -166,56 +167,100 @@ function App() {
     return R * c;
   };
 
+  // const searchPostcodes = () => {
+  //   if (!postcode.trim()) {
+  //     setError('Please enter a postcode');
+  //     return;
+  //   }
+
+  //   const center = allPostcodes.find((p) =>
+  //     p.postcode?.toUpperCase().replace(/\s/g, '') === postcode.toUpperCase().replace(/\s/g, '')
+  //   );
+
+  //   if (!center) {
+  //     setError('Postcode not found in dataset');
+  //     return;
+  //   }
+
+  //   if (!center.latitude || !center.longitude) {
+  //     setError('Center postcode missing coordinates');
+  //     return;
+  //   }
+
+  //   if (!radius || radius <= 0) {
+  //     setError('Please enter a valid radius');
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   setError('');
+  //   setResults([]);
+  //   setSearchInfo(null);
+
+  //   const radiusKm = parseFloat(radius);
+  //   const nearby = allPostcodes
+  //     .map((p) => {
+  //       if (!p.latitude || !p.longitude) return null;
+  //       const distance = calculateDistance(center.latitude, center.longitude, p.latitude, p.longitude);
+  //       return { ...p, distance_km: distance };
+  //     })
+  //     .filter((p) => p !== null && p.distance_km <= radiusKm)
+  //     .sort((a, b) => a.distance_km - b.distance_km);
+
+  //   setResults(nearby);
+  //   setSearchInfo({
+  //     center: center.postcode,
+  //     centerLat: center.latitude,
+  //     centerLon: center.longitude,
+  //     radius,
+  //     count: nearby.length,
+  //   });
+
+  //   setLoading(false);
+  // };
+
   const searchPostcodes = () => {
-    if (!postcode.trim()) {
-      setError('Please enter a postcode');
-      return;
-    }
+    if (!postcode.trim()) { setError('Please enter a postcode'); return; }
 
     const center = allPostcodes.find((p) =>
       p.postcode?.toUpperCase().replace(/\s/g, '') === postcode.toUpperCase().replace(/\s/g, '')
     );
-
-    if (!center) {
-      setError('Postcode not found in dataset');
-      return;
-    }
-
-    if (!center.latitude || !center.longitude) {
-      setError('Center postcode missing coordinates');
-      return;
-    }
-
-    if (!radius || radius <= 0) {
-      setError('Please enter a valid radius');
-      return;
-    }
+    if (!center) { setError('Postcode not found in dataset'); return; }
+    if (!center.latitude || !center.longitude) { setError('Center postcode missing coordinates'); return; }
+    if (!radius || radius <= 0) { setError('Please enter a valid radius'); return; }
 
     setLoading(true);
     setError('');
     setResults([]);
     setSearchInfo(null);
+    setDisplayLimit(100);
 
-    const radiusKm = parseFloat(radius);
-    const nearby = allPostcodes
-      .map((p) => {
-        if (!p.latitude || !p.longitude) return null;
-        const distance = calculateDistance(center.latitude, center.longitude, p.latitude, p.longitude);
-        return { ...p, distance_km: distance };
-      })
-      .filter((p) => p !== null && p.distance_km <= radiusKm)
-      .sort((a, b) => a.distance_km - b.distance_km);
+    // Let React paint the spinner before the heavy loop blocks the thread
+    setTimeout(() => {
+      const radiusKm = parseFloat(radius);
+      const nearby = [];
 
-    setResults(nearby);
-    setSearchInfo({
-      center: center.postcode,
-      centerLat: center.latitude,
-      centerLon: center.longitude,
-      radius,
-      count: nearby.length,
-    });
+      for (const p of allPostcodes) {
+        if (!p.latitude || !p.longitude) continue;
+        const d = calculateDistance(center.latitude, center.longitude, p.latitude, p.longitude);
+        if (d <= radiusKm) {
+          // Only create objects for matches, not for all postcodes
+          nearby.push({ postcode: p.postcode, latitude: p.latitude, longitude: p.longitude, distance_km: d });
+        }
+      }
 
-    setLoading(false);
+      nearby.sort((a, b) => a.distance_km - b.distance_km);
+
+      setResults(nearby);
+      setSearchInfo({
+        center: center.postcode,
+        centerLat: center.latitude,
+        centerLon: center.longitude,
+        radius,
+        count: nearby.length,
+      });
+      setLoading(false);
+    }, 50);
   };
 
   const handlePostcodeSearchForMap = async () => {
@@ -286,22 +331,28 @@ function App() {
   };
 
   const downloadCSV = () => {
-    if (results.length === 0) {
-      setError('No data to download');
-      return;
+    if (results.length === 0) { setError('No data to download'); return; }
+
+    const parts = ['postcode,latitude,longitude,distance_km\n'];
+    const chunkSize = 10000;
+    for (let i = 0; i < results.length; i += chunkSize) {
+      parts.push(
+        results
+          .slice(i, i + chunkSize)
+          .map((p) => `${p.postcode},${p.latitude},${p.longitude},${p.distance_km.toFixed(4)}`)
+          .join('\n') + '\n'
+      );
     }
 
-    const headers = ['postcode', 'latitude', 'longitude', 'distance_km'];
-    const csvContent = [
-      headers.join(','),
-      ...results.map((p) => `${p.postcode},${p.latitude},${p.longitude},${p.distance_km.toFixed(4)}`),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(parts, { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `postcodes_within_${radius}km_of_${postcode}.csv`;
+    link.href = url;
+    link.download = `postcodes_within_${radius}km_of_${postcode.replace(/\s/g, '')}.csv`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const boroughStyle = (feature) => {
@@ -450,25 +501,22 @@ function App() {
                 <div className="p-4 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                     <MapPin className="w-5 h-5" />
-                    Results ({results.length} postcodes)
+                    Results ({results.length.toLocaleString()} postcodes)
                   </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Showing {Math.min(displayLimit, results.length).toLocaleString()} nearest. Use Download CSV for the full list.
+                  </p>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   <div className="grid gap-2 p-4">
-                    {results.map((p, i) => (
+                    {results.slice(0, displayLimit).map((p, i) => (
                       <div
-                        key={i}
+                        key={`${p.postcode}-${i}`}
                         className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
                       >
-                        <div>
-                          <span className="font-mono text-lg font-semibold text-blue-600">
-                            {p.postcode}
-                          </span>
-                        </div>
+                        <span className="font-mono text-lg font-semibold text-blue-600">{p.postcode}</span>
                         <div className="text-right">
-                          <span className="text-sm font-medium text-gray-700">
-                            {p.distance_km.toFixed(2)} km
-                          </span>
+                          <span className="text-sm font-medium text-gray-700">{p.distance_km.toFixed(2)} km</span>
                           <p className="text-xs text-gray-500">
                             {p.latitude?.toFixed(4)}, {p.longitude?.toFixed(4)}
                           </p>
@@ -476,6 +524,16 @@ function App() {
                       </div>
                     ))}
                   </div>
+                  {displayLimit < results.length && (
+                    <div className="p-4 pt-0">
+                      <button
+                        onClick={() => setDisplayLimit((l) => l + 200)}
+                        className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 font-medium"
+                      >
+                        Show 200 more
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
